@@ -326,20 +326,20 @@ class DefaultLanding extends React.Component {
                   </PinDropTarget>
                 </Box>
               ) : (
-                <PinDropTarget pinIndex={1} hideUntilDrag>
-                  {({ hovered }) => (
-                    <div
-                      className={cx(
-                        "p2 flex layout-centered",
-                        hovered ? "text-brand" : "text-light",
-                      )}
-                    >
-                      <Icon name="pin" mr={1} />
-                      {t`Drag something here to pin it to the top`}
-                    </div>
-                  )}
-                </PinDropTarget>
-              )}
+                  <PinDropTarget pinIndex={1} hideUntilDrag>
+                    {({ hovered }) => (
+                      <div
+                        className={cx(
+                          "p2 flex layout-centered",
+                          hovered ? "text-brand" : "text-light",
+                        )}
+                      >
+                        <Icon name="pin" mr={1} />
+                        {t`Drag something here to pin it to the top`}
+                      </div>
+                    )}
+                  </PinDropTarget>
+                )}
               <Box pt={[1, 2]} px={[2, 4]}>
                 <Grid>
                   {showSidebar && (
@@ -411,27 +411,27 @@ class DefaultLanding extends React.Component {
                               </Box>
                             </PinDropTarget>
                           ) : (
-                            <Box>
-                              {location.query.type &&
-                                EMPTY_STATES[location.query.type]}
-                              <PinDropTarget
-                                pinIndex={null}
-                                hideUntilDrag
-                                margin={10}
-                              >
-                                {({ hovered }) => (
-                                  <div
-                                    className={cx(
-                                      "m2 flex layout-centered",
-                                      hovered ? "text-brand" : "text-light",
-                                    )}
-                                  >
-                                    {t`Drag here to un-pin`}
-                                  </div>
-                                )}
-                              </PinDropTarget>
-                            </Box>
-                          )}
+                              <Box>
+                                {location.query.type &&
+                                  EMPTY_STATES[location.query.type]}
+                                <PinDropTarget
+                                  pinIndex={null}
+                                  hideUntilDrag
+                                  margin={10}
+                                >
+                                  {({ hovered }) => (
+                                    <div
+                                      className={cx(
+                                        "m2 flex layout-centered",
+                                        hovered ? "text-brand" : "text-light",
+                                      )}
+                                    >
+                                      {t`Drag here to un-pin`}
+                                    </div>
+                                  )}
+                                </PinDropTarget>
+                              </Box>
+                            )}
                         </Card>
                       </Box>
                     </GridItem>
@@ -536,45 +536,45 @@ export const NormalItem = ({
   onMove,
   onCopy,
 }) => (
-  <Link
-    to={item.getUrl()}
-    data-metabase-event={`${ANALYTICS_CONTEXT};Item Click;${item.model}`}
-  >
-    <EntityItem
-      analyticsContext={ANALYTICS_CONTEXT}
-      variant="list"
-      showSelect={selection.size > 0}
-      selectable
-      item={item}
-      type={entityTypeForObject(item)}
-      name={item.getName()}
-      iconName={item.getIcon()}
-      iconColor={item.getColor()}
-      isFavorite={item.favorite}
-      onFavorite={
-        item.setFavorited ? () => item.setFavorited(!item.favorite) : null
-      }
-      onPin={
-        collection.can_write && item.setPinned
-          ? () => item.setPinned(true)
-          : null
-      }
-      onMove={
-        collection.can_write && item.setCollection ? () => onMove([item]) : null
-      }
-      onCopy={item.copy ? () => onCopy([item]) : null}
-      onArchive={
-        collection.can_write && item.setArchived
-          ? () => item.setArchived(true)
-          : null
-      }
-      selected={selection.has(item)}
-      onToggleSelected={() => {
-        onToggleSelected(item);
-      }}
-    />
-  </Link>
-);
+    <Link
+      to={item.getUrl()}
+      data-metabase-event={`${ANALYTICS_CONTEXT};Item Click;${item.model}`}
+    >
+      <EntityItem
+        analyticsContext={ANALYTICS_CONTEXT}
+        variant="list"
+        showSelect={selection.size > 0}
+        selectable
+        item={item}
+        type={entityTypeForObject(item)}
+        name={item.getName()}
+        iconName={item.getIcon()}
+        iconColor={item.getColor()}
+        isFavorite={item.favorite}
+        onFavorite={
+          item.setFavorited ? () => item.setFavorited(!item.favorite) : null
+        }
+        onPin={
+          collection.can_write && item.setPinned
+            ? () => item.setPinned(true)
+            : null
+        }
+        onMove={
+          collection.can_write && item.setCollection ? () => onMove([item]) : null
+        }
+        onCopy={item.copy ? () => onCopy([item]) : null}
+        onArchive={
+          collection.can_write && item.setArchived
+            ? () => item.setArchived(true)
+            : null
+        }
+        selected={selection.has(item)}
+        onToggleSelected={() => {
+          onToggleSelected(item);
+        }}
+      />
+    </Link>
+  );
 
 const PinnedItem = ({ item, index, collection }) => (
   <Link
@@ -584,7 +584,7 @@ const PinnedItem = ({ item, index, collection }) => (
     data-metabase-event={`${ANALYTICS_CONTEXT};Pinned Item;Click;${item.model}`}
   >
     <Card hoverable p={3}>
-      <Icon name={item.getIcon()} color={item.getColor()} size={28} mb={2} />
+      <Icon name={item.getIcon()} color={item.getColor()} size={64} mb={2} />
       <Flex align="center">
         <h3>{item.getName()}</h3>
         {collection.can_write && item.setPinned && (
@@ -593,7 +593,7 @@ const PinnedItem = ({ item, index, collection }) => (
             className="hover-child"
             data-metabase-event={`${ANALYTICS_CONTEXT};Pinned Item;Unpin;${
               item.model
-            }`}
+              }`}
             onClick={ev => {
               ev.preventDefault();
               item.setPinned(false);
@@ -638,8 +638,8 @@ const SelectionControls = ({
   ) : selected.length === 0 ? (
     <StackedCheckBox onChange={onSelectAll} size={size} />
   ) : (
-    <StackedCheckBox checked indeterminate onChange={onSelectAll} size={size} />
-  );
+        <StackedCheckBox checked indeterminate onChange={onSelectAll} size={size} />
+      );
 
 @Collection.load({
   id: (state, props) => props.params.collectionId,

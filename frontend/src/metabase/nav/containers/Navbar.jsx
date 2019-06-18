@@ -29,6 +29,7 @@ import ProfileLink from "metabase/nav/components/ProfileLink.jsx";
 
 import { getPath, getContext, getUser } from "../selectors";
 import Database from "metabase/entities/databases";
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission";
 
 const mapStateToProps = (state, props) => ({
   path: getPath(state, props),
@@ -63,7 +64,7 @@ const ActiveSearchColor = color(colors.brand)
 
 const SearchWrapper = Flex.extend`
   ${width} background-color: ${props =>
-  props.active ? ActiveSearchColor : DefaultSearchColor};
+    props.active ? ActiveSearchColor : DefaultSearchColor};
   border-radius: 6px;
   align-items: center;
   color: white;
@@ -158,6 +159,7 @@ const MODAL_NEW_DASHBOARD = "MODAL_NEW_DASHBOARD";
 export default class Navbar extends Component {
   state = {
     modal: null,
+    currentUserPermission: {},
   };
 
   static propTypes = {
@@ -174,6 +176,14 @@ export default class Navbar extends Component {
     this.setState({ modal });
     if (this._newPopover) {
       this._newPopover.close();
+    }
+  }
+
+  componentWillMount = async () => {
+    const { user } = this.props;
+    if (user) {
+      const allowed = await CurrentUserPermission.setUserPermission();
+      this.setState({ currentUserPermission: allowed });
     }
   }
 
@@ -293,7 +303,7 @@ export default class Navbar extends Component {
           </Box>
         </Flex>
         <Flex ml="auto" align="center" className="relative z2">
-          {hasDataAccess && (
+          {this.state.currentUserPermission.AskQuestion && (
             <Link
               to={Urls.newQuestion()}
               mx={2}
@@ -303,26 +313,28 @@ export default class Navbar extends Component {
               <Button medium>{t`Ask a question`}</Button>
             </Link>
           )}
-          <EntityMenu
-            tooltip={t`Create`}
-            className="hide sm-show"
-            triggerIcon="add"
-            items={[
-              {
-                title: t`New dashboard`,
-                icon: `dashboard`,
-                action: () => this.setModal(MODAL_NEW_DASHBOARD),
-                event: `NavBar;New Dashboard Click;`,
-              },
-              {
-                title: t`New pulse`,
-                icon: `pulse`,
-                link: Urls.newPulse(),
-                event: `NavBar;New Pulse Click;`,
-              },
-            ]}
-          />
-          {hasDataAccess && (
+          {this.state.currentUserPermission.NewDashboard && (
+            <EntityMenu
+              tooltip={t`Create`}
+              className="hide sm-show"
+              triggerIcon="add"
+              items={[
+                {
+                  title: t`New dashboard`,
+                  icon: `dashboard`,
+                  action: () => this.setModal(MODAL_NEW_DASHBOARD),
+                  event: `NavBar;New Dashboard Click;`,
+                },
+                {
+                  title: t`New pulse`,
+                  icon: `pulse`,
+                  link: Urls.newPulse(),
+                  event: `NavBar;New Pulse Click;`,
+                },
+              ]}
+            />
+          )}
+          {this.state.currentUserPermission.Reference && (
             <Tooltip tooltip={t`Reference`}>
               <Link to="reference" data-metabase-event={`NavBar;Reference`}>
                 <IconWrapper>
@@ -331,13 +343,15 @@ export default class Navbar extends Component {
               </Link>
             </Tooltip>
           )}
-          <Tooltip tooltip={t`Activity`}>
-            <Link to="activity" data-metabase-event={`NavBar;Activity`}>
-              <IconWrapper>
-                <Icon name="bell" />
-              </IconWrapper>
-            </Link>
-          </Tooltip>
+          {this.state.currentUserPermission.Activity && (
+            <Tooltip tooltip={t`Activity`}>
+              <Link to="activity" data-metabase-event={`NavBar;Activity`}>
+                <IconWrapper>
+                  <Icon name="bell" />
+                </IconWrapper>
+              </Link>
+            </Tooltip>
+          )}
           <ProfileLink {...this.props} />
         </Flex>
         {this.renderModal()}

@@ -26,16 +26,17 @@ import type { LocationDescriptor, QueryParams } from "metabase/meta/types";
 import type { Card, CardId } from "metabase/meta/types/Card";
 import type {
   Parameter,
-  ParameterId,
-  ParameterOption,
+    ParameterId,
+    ParameterOption,
 } from "metabase/meta/types/Parameter";
 import type {
   DashboardWithCards,
-  DashboardId,
-  DashCardId,
+    DashboardId,
+    DashCardId,
 } from "metabase/meta/types/Dashboard";
 import type { RevisionId } from "metabase/meta/types/Revision";
 import { Link } from "react-router";
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission"
 
 type Props = {
   location: LocationDescriptor,
@@ -87,6 +88,7 @@ export default class DashboardHeader extends Component {
   props: Props;
   state: State = {
     modal: null,
+    currentUserPermission: {},
   };
 
   static propTypes = {
@@ -114,6 +116,11 @@ export default class DashboardHeader extends Component {
     onNightModeChange: PropTypes.func.isRequired,
     onFullscreenChange: PropTypes.func.isRequired,
   };
+
+  componentWillMount = async () => {
+    const allowed = await CurrentUserPermission.setUserPermission();
+    this.setState({ currentUserPermission: allowed });
+  }
 
   onEdit() {
     this.props.onEditingChange(true);
@@ -325,16 +332,18 @@ export default class DashboardHeader extends Component {
           </Tooltip>,
         );
       }
-      buttons.push(
-        <Tooltip key="copy-dashboard" tooltip={t`Duplicate dashboard`}>
-          <Link
-            to={location.pathname + "/copy"}
-            data-metabase-event={"Dashboard;Copy"}
-          >
-            <Icon className="text-brand-hover" name="clone" size={18} />
-          </Link>
-        </Tooltip>,
-      );
+      if (this.state.currentUserPermission.DuplicateDashboard) {
+        buttons.push(
+          <Tooltip key="copy-dashboard" tooltip={t`Duplicate dashboard`}>
+            <Link
+              to={location.pathname + "/copy"}
+              data-metabase-event={"Dashboard;Copy"}
+            >
+              <Icon className="text-brand-hover" name="clone" size={18} />
+            </Link>
+          </Tooltip>,
+        );
+      }
     }
 
     if (

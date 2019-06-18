@@ -219,7 +219,7 @@ export default class LoginApp extends Component {
                 <Button primary={this.state.valid} disabled={!this.state.valid}>
                   {t`Sign in`}
                 </Button>
-                <Link
+                {/* <Link
                   to={
                     "/auth/forgot_password" +
                     (Utils.validEmail(this.state.credentials.username)
@@ -230,7 +230,7 @@ export default class LoginApp extends Component {
                   onClick={e => {
                     window.OSX ? window.OSX.resetPassword() : null;
                   }}
-                >{t`I seem to have forgotten my password`}</Link>
+                >{t`I seem to have forgotten my password`}</Link> */}
               </div>
             </form>
           </div>
