@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import _ from "underscore";
 import { Box, Flex } from "grid-styled";
 import { connect } from "react-redux";
@@ -29,6 +29,7 @@ import { ROOT_COLLECTION } from "metabase/entities/collections";
 
 import { getUser } from "metabase/home/selectors";
 import { getXraysEnabled } from "metabase/selectors/settings";
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission"
 
 const PAGE_PADDING = [1, 2, 4];
 
@@ -66,7 +67,18 @@ const getParitionedCollections = createSelector(
   user: getUser(state, props),
   xraysEnabled: getXraysEnabled(state),
 }))
-class Overworld extends React.Component {
+class Overworld extends Component {
+  state = {
+    currentUserPermission: {},
+  };
+
+  componentWillMount = async () => {
+    const { user } = this.props;
+    if (user) {
+      const allowed = await CurrentUserPermission.setUserPermission();
+      this.setState({ currentUserPermission: allowed });
+    }
+  }
   render() {
     const { user, xraysEnabled } = this.props;
     return (
@@ -120,7 +132,7 @@ class Overworld extends React.Component {
             }
 
             if (pinnedDashboards.length === 0) {
-              return null;
+              return <div></div>;
             }
 
             return (
@@ -136,7 +148,7 @@ class Overworld extends React.Component {
                         <Link
                           data-metabase-event={`Homepage;Pinned Item Click;Pin Type ${
                             pin.model
-                          }`}
+                            }`}
                           to={Urls.dashboard(pin.id)}
                           hover={{ color: normal.blue }}
                         >
@@ -167,30 +179,30 @@ class Overworld extends React.Component {
             {this.props.collections.filter(
               c => c.id !== user.personal_collection_id,
             ).length > 0 ? (
-              <CollectionList
-                collections={this.props.collections}
-                analyticsContext="Homepage"
-                asCards={true}
-              />
-            ) : (
-              <Box className="text-centered">
-                <Box style={{ opacity: 0.5 }}>
-                  <RetinaImage
-                    src="app/img/empty.png"
-                    className="block ml-auto mr-auto"
-                  />
+                <CollectionList
+                  collections={this.props.collections}
+                  analyticsContext="Homepage"
+                  asCards={true}
+                />
+              ) : (
+                <Box className="text-centered">
+                  <Box style={{ opacity: 0.5 }}>
+                    <RetinaImage
+                      src="app/img/empty.png"
+                      className="block ml-auto mr-auto"
+                    />
+                  </Box>
+                  <h3 className="text-medium">
+                    {user.is_superuser
+                      ? t`Save dashboards, questions, and collections in "${
+                        ROOT_COLLECTION.name
+                        }"`
+                      : t`Access dashboards, questions, and collections in "${
+                        ROOT_COLLECTION.name
+                        }"`}
+                  </h3>
                 </Box>
-                <h3 className="text-medium">
-                  {user.is_superuser
-                    ? t`Save dashboards, questions, and collections in "${
-                        ROOT_COLLECTION.name
-                      }"`
-                    : t`Access dashboards, questions, and collections in "${
-                        ROOT_COLLECTION.name
-                      }"`}
-                </h3>
-              </Box>
-            )}
+              )}
             <Link
               to="/collection/root"
               color={normal.grey2}
@@ -208,30 +220,25 @@ class Overworld extends React.Component {
             </Link>
           </Box>
         </Box>
-
-        <Database.ListLoader>
-          {({ databases }) => {
-            if (databases.length === 0) {
-              return null;
-            }
-            return (
-              <Box pt={2} px={PAGE_PADDING}>
-                <SectionHeading>{t`Our data`}</SectionHeading>
-                <Box mb={4}>
-                  <Grid>
-                    {databases.map(database => (
-                      <GridItem w={[1, 1 / 3]} key={database.id}>
-                        <Link
-                          to={`browse/${database.id}`}
-                          hover={{ color: normal.blue }}
-                          data-metabase-event={`Homepage;Browse DB Clicked; DB Type ${
-                            database.engine
-                          }`}
-                        >
-                          <Box
-                            p={3}
-                            bg={colors["bg-medium"]}
-                            className="hover-parent hover--visibility"
+        {this.state.currentUserPermission.DataSection && (
+          <Database.ListLoader>
+            {({ databases }) => {
+              if (databases.length === 0) {
+                return null;
+              }
+              return (
+                <Box pt={2} px={PAGE_PADDING}>
+                  <SectionHeading>{t`Our data`}</SectionHeading>
+                  <Box mb={4}>
+                    <Grid>
+                      {databases.map(database => (
+                        <GridItem w={[1, 1 / 3]} key={database.id}>
+                          <Link
+                            to={`browse/${database.id}`}
+                            hover={{ color: normal.blue }}
+                            data-metabase-event={`Homepage;Browse DB Clicked; DB Type ${
+                              database.engine
+                              }`}
                           >
                             <Icon
                               name="database"
@@ -258,16 +265,17 @@ class Overworld extends React.Component {
                                 </Flex>
                               </Box>
                             </Flex>
-                          </Box>
-                        </Link>
-                      </GridItem>
-                    ))}
-                  </Grid>
+
+                          </Link>
+                        </GridItem>
+                      ))}
+                    </Grid>
+                  </Box>
                 </Box>
-              </Box>
-            );
-          }}
-        </Database.ListLoader>
+              );
+            }}
+          </Database.ListLoader>
+        )}
       </Box>
     );
   }
