@@ -9,13 +9,13 @@ const settingListeners = {};
 
 // provides access to Metabase application settings
 const MetabaseSettings = {
-  get: function(propName, defaultValue = null) {
+  get: function (propName, defaultValue = null) {
     return mb_settings[propName] !== undefined
       ? mb_settings[propName]
       : defaultValue;
   },
 
-  set: function(key, value) {
+  set: function (key, value) {
     if (mb_settings[key] !== value) {
       mb_settings[key] = value;
       if (settingListeners[key]) {
@@ -26,36 +26,36 @@ const MetabaseSettings = {
     }
   },
 
-  setAll: function(settings) {
+  setAll: function (settings) {
     for (const key in settings) {
       MetabaseSettings.set(key, settings[key]);
     }
   },
 
   // these are all special accessors which provide a lookup of a property plus some additional help
-  adminEmail: function() {
+  adminEmail: function () {
     return mb_settings.admin_email;
   },
 
-  isEmailConfigured: function() {
+  isEmailConfigured: function () {
     return mb_settings.email_configured;
   },
 
-  isTrackingEnabled: function() {
+  isTrackingEnabled: function () {
     return mb_settings.anon_tracking_enabled || false;
   },
 
-  hasSetupToken: function() {
+  hasSetupToken: function () {
     return (
       mb_settings.setup_token !== undefined && mb_settings.setup_token !== null
     );
   },
 
-  ssoEnabled: function() {
+  ssoEnabled: function () {
     return mb_settings.google_auth_client_id != null;
   },
 
-  ldapEnabled: function() {
+  ldapEnabled: function () {
     return mb_settings.ldap_configured;
   },
 
@@ -77,32 +77,34 @@ const MetabaseSettings = {
     return `https://metabase.com/docs/${tag}${page}${anchor}`;
   },
 
-  newVersionAvailable: function(settings) {
-    let versionInfo = _.findWhere(settings, { key: "version-info" });
-    const currentVersion = MetabaseSettings.get("version").tag;
+  newVersionAvailable: function (settings) {
+    // let versionInfo = _.findWhere(settings, { key: "version-info" });
+    // console.log('versionInfo', versionInfo)
+    // const currentVersion = MetabaseSettings.get("version").tag;
 
-    if (versionInfo) {
-      versionInfo = versionInfo.value;
-    }
+    // if (versionInfo) {
+    //   versionInfo = versionInfo.value;
+    // }
 
-    return (
-      versionInfo &&
-      versionInfo.latest &&
-      MetabaseUtils.compareVersions(
-        currentVersion,
-        versionInfo.latest.version,
-      ) < 0
-    );
+    // return (
+    //   versionInfo &&
+    //   versionInfo.latest &&
+    //   MetabaseUtils.compareVersions(
+    //     currentVersion,
+    //     versionInfo.latest.version,
+    //   ) < 0
+    // );
+    return false;
   },
 
   // returns a map that looks like {total: 6, digit: 1}
   passwordComplexityRequirements: () => mb_settings.password_complexity,
 
   // returns a description of password complexity requirements rather than the actual map of requirements
-  passwordComplexityDescription: function(capitalize) {
+  passwordComplexityDescription: function (capitalize) {
     const complexity = this.get("password_complexity");
 
-    const clauseDescription = function(clause) {
+    const clauseDescription = function (clause) {
       switch (clause) {
         case "lower":
           return t`lower case letter`;
@@ -121,7 +123,7 @@ const MetabaseSettings = {
         : t`Must be` + " " + complexity.total + " " + t`characters long`;
     const clauses = [];
 
-    ["lower", "upper", "digit", "special"].forEach(function(clause) {
+    ["lower", "upper", "digit", "special"].forEach(function (clause) {
       if (clause in complexity) {
         const desc =
           complexity[clause] > 1
@@ -140,7 +142,7 @@ const MetabaseSettings = {
     }
   },
 
-  on: function(setting, callback) {
+  on: function (setting, callback) {
     settingListeners[setting] = settingListeners[setting] || [];
     settingListeners[setting].push(callback);
   },

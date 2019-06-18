@@ -51,22 +51,22 @@ export default class ProfileLink extends Component {
           link: adminContext ? "/" : "/admin",
           event: `Navbar;Profile Dropdown;${
             adminContext ? "Exit Admin" : "Enter Admin"
-          }`,
+            }`,
         },
       ]),
-      {
-        title: t`Help`,
-        icon: null,
-        link: MetabaseSettings.docsUrl(),
-        externalLink: true,
-        event: `Navbar;Profile Dropdown;About ${tag}`,
-      },
-      {
-        title: t`About Metabase`,
-        icon: null,
-        action: () => this.openModal("about"),
-        event: `Navbar;Profile Dropdown;About ${tag}`,
-      },
+      // {
+      //   title: t`Help`,
+      //   icon: null,
+      //   link: MetabaseSettings.docsUrl(),
+      //   externalLink: true,
+      //   event: `Navbar;Profile Dropdown;About ${tag}`,
+      // },
+      // {
+      //   title: t`About Metabase`,
+      //   icon: null,
+      //   action: () => this.openModal("about"),
+      //   event: `Navbar;Profile Dropdown;About ${tag}`,
+      // },
       {
         title: t`Sign out`,
         icon: null,

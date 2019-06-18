@@ -21,6 +21,7 @@ import DataReference from "../components/dataref/DataReference.jsx";
 import TagEditorSidebar from "../components/template_tags/TagEditorSidebar.jsx";
 import SavedQuestionIntroModal from "../components/SavedQuestionIntroModal.jsx";
 import ActionsWidget from "../components/ActionsWidget.jsx";
+import FilterBy from "../components/FilterBy.jsx";
 
 import title from "metabase/hoc/Title";
 
@@ -64,6 +65,7 @@ import { MetabaseApi } from "metabase/services";
 
 import NativeQuery from "metabase-lib/lib/queries/NativeQuery";
 import StructuredQuery from "metabase-lib/lib/queries/StructuredQuery";
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission"
 
 function autocompleteResults(card, prefix) {
   const databaseId = card && card.dataset_query && card.dataset_query.database;
@@ -160,9 +162,9 @@ export default class QueryBuilder extends Component {
   componentWillReceiveProps(nextProps) {
     if (
       nextProps.uiControls.isShowingDataReference !==
-        this.props.uiControls.isShowingDataReference ||
+      this.props.uiControls.isShowingDataReference ||
       nextProps.uiControls.isShowingTemplateTagsEditor !==
-        this.props.uiControls.isShowingTemplateTagsEditor
+      this.props.uiControls.isShowingTemplateTagsEditor
     ) {
       // when the data reference is toggled we need to trigger a rerender after a short delay in order to
       // ensure that some components are updated after the animation completes (e.g. card visualization)
@@ -233,6 +235,38 @@ export default class QueryBuilder extends Component {
 }
 
 class LegacyQueryBuilder extends Component {
+
+  state = {
+    modal: null,
+    currentUserPermission: {},
+  };
+
+  componentWillMount = async () => {
+    const allowed = await CurrentUserPermission.setUserPermission();
+    this.setState({ currentUserPermission: allowed });
+
+  };
+
+  getFiltersForDisplay = (filters) => {
+    const labels: [] = [];
+    console.log('filters', filters);
+    try {
+      if (filters.length === 0) {
+        return '';
+      }
+      const reversedFilters = filters.reverse();
+      for (let r = 0; r < reversedFilters.length; r++) {
+        const op = reversedFilters[r][0];
+        if (op !== 'between' && op !== 'segment') {
+          labels.push(reversedFilters[r][reversedFilters[r].length - 1]);
+        }
+      }
+    } catch (error) {
+      console.log('error', error);
+    }
+    return labels.join(', ');
+  };
+
   render() {
     const { query, card, isDirty, databases, uiControls, mode } = this.props;
 
@@ -245,7 +279,8 @@ class LegacyQueryBuilder extends Component {
       uiControls.isShowingDataReference ||
       uiControls.isShowingTemplateTagsEditor;
     const ModeFooter = mode && mode.ModeFooter;
-
+    const tempFilter = JSON.parse(JSON.stringify(query.filters()));
+    const labels = this.getFiltersForDisplay(tempFilter);
     return (
       <div className={this.props.fitClassNames}>
         <div
@@ -256,24 +291,28 @@ class LegacyQueryBuilder extends Component {
           <div id="react_qb_header">
             <QueryHeader {...this.props} />
           </div>
+          {this.state.currentUserPermission.QueryFilter == false && labels !== '' && (
+            <FilterBy labels={labels} title={'Filtered By'} />
 
-          <div id="react_qb_editor" className="z2 hide sm-show">
-            {query instanceof NativeQuery ? (
-              <NativeQueryEditor
-                {...this.props}
-                isOpen={!card.dataset_query.native.query || isDirty}
-                datasetQuery={card && card.dataset_query}
-              />
-            ) : query instanceof StructuredQuery ? (
-              <div className="wrapper">
-                <GuiQueryEditor
+          )}
+          {this.state.currentUserPermission.QueryFilter && (
+            <div id="react_qb_editor" className="z2 hide sm-show">
+              {query instanceof NativeQuery ? (
+                <NativeQueryEditor
                   {...this.props}
+                  isOpen={!card.dataset_query.native.query || isDirty}
                   datasetQuery={card && card.dataset_query}
                 />
-              </div>
-            ) : null}
-          </div>
-
+              ) : query instanceof StructuredQuery ? (
+                <div className="wrapper">
+                  <GuiQueryEditor
+                    {...this.props}
+                    datasetQuery={card && card.dataset_query}
+                  />
+                </div>
+              ) : null}
+            </div>
+          )}
           <div
             ref="viz"
             id="react_qb_viz"

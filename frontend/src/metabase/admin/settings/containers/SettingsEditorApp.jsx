@@ -212,12 +212,11 @@ export default class SettingsEditorApp extends Component {
 
   renderSettingsSections() {
     const { sections, activeSection, newVersionAvailable } = this.props;
-
     const renderedSections = _.map(sections, (section, idx) => {
       // HACK - This is used to hide specific items in the sidebar and is currently
       // only used as a way to fake the multi page auth settings pages without
       // requiring a larger refactor.
-      if (section.sidebar === false) {
+      if (section.sidebar === false || section.name === 'Updates') {
         return false;
       }
       const classes = cx(

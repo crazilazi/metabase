@@ -39,6 +39,8 @@ import { fetchAlertsForQuestion } from "metabase/alert/alert";
 
 import Collections from "metabase/entities/collections";
 
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission"
+
 const mapStateToProps = (state, props) => ({
   questionAlerts: getQuestionAlerts(state),
   visualizationSettings: getVisualizationSettings(state),
@@ -67,6 +69,7 @@ export default class QueryHeader extends Component {
       recentlySaved: null,
       modal: null,
       revisions: null,
+      currentUserPermission: {},
     };
   }
 
@@ -87,6 +90,11 @@ export default class QueryHeader extends Component {
 
   componentWillUnmount() {
     clearTimeout(this.timeout);
+  }
+
+  componentWillMount = async () => {
+    const allowed = await CurrentUserPermission.setUserPermission();
+    this.setState({ currentUserPermission: allowed });
   }
 
   resetStateOnTimeout = () => {
@@ -190,7 +198,7 @@ export default class QueryHeader extends Component {
     const buttonSections = [];
 
     // A card that is either completely new or it has been derived from a saved question
-    if (isNew && isDirty) {
+    if (isNew && isDirty && this.state.currentUserPermission.SaveReport) {
       buttonSections.push([
         <ModalWithTrigger
           form
@@ -326,7 +334,7 @@ export default class QueryHeader extends Component {
     }
 
     // add to dashboard
-    if (!isNew && !isEditing) {
+    if (!isNew && !isEditing && this.state.currentUserPermission.AddToDashBoard) {
       // simply adding an existing saved card to a dashboard, so show the modal to do so
       buttonSections.push([
         <Tooltip key="addtodash" tooltip={t`Add to dashboard`}>
@@ -339,7 +347,7 @@ export default class QueryHeader extends Component {
           </span>
         </Tooltip>,
       ]);
-    } else if (isNew && isDirty) {
+    } else if (isNew && isDirty && this.state.currentUserPermission.AddToDashBoard) {
       // this is a new card, so we need the user to save first then they can add to dash
       buttonSections.push([
         <Tooltip key="addtodashsave" tooltip={t`Add to dashboard`}>
@@ -401,52 +409,54 @@ export default class QueryHeader extends Component {
         </Tooltip>,
       ]);
     }
-
-    // query mode toggle
-    buttonSections.push([
-      <QueryModeButton
-        key="queryModeToggle"
-        mode={this.props.card.dataset_query.type}
-        allowNativeToQuery={isNew && !isDirty}
-        allowQueryToNative={
-          tableMetadata
-            ? // if a table is selected, only enable if user has native write permissions for THAT database
+    if (this.state.currentUserPermission.QueryModeToggle) {
+      // query mode toggle
+      buttonSections.push([
+        <QueryModeButton
+          key="queryModeToggle"
+          mode={this.props.card.dataset_query.type}
+          allowNativeToQuery={isNew && !isDirty}
+          allowQueryToNative={
+            tableMetadata
+              ? // if a table is selected, only enable if user has native write permissions for THAT database
               tableMetadata.db &&
               tableMetadata.db.native_permissions === "write"
-            : // if no table is selected, only enable if user has native write permissions for ANY database
+              : // if no table is selected, only enable if user has native write permissions for ANY database
               _.any(databases, db => db.native_permissions === "write")
-        }
-        nativeForm={
-          this.props.result &&
-          this.props.result.data &&
-          this.props.result.data.native_form
-        }
-        onSetMode={this.props.setQueryModeFn}
-        tableMetadata={tableMetadata}
-      />,
-    ]);
-
+          }
+          nativeForm={
+            this.props.result &&
+            this.props.result.data &&
+            this.props.result.data.native_form
+          }
+          onSetMode={this.props.setQueryModeFn}
+          tableMetadata={tableMetadata}
+        />,
+      ]);
+    }
     // data reference button
     const dataReferenceButtonClasses = cx("transition-color", {
       "text-brand": this.props.isShowingDataReference,
       "text-brand-hover": !this.state.isShowingDataReference,
     });
-    buttonSections.push([
-      <Tooltip key="dataReference" tooltip={t`Learn about your data`}>
-        <a className={dataReferenceButtonClasses}>
-          <Icon
-            name="reference"
-            size={ICON_SIZE}
-            onClick={this.onToggleDataReference}
-          />
-        </a>
-      </Tooltip>,
-    ]);
-
+    if (this.state.currentUserPermission.LearnAboutData) {
+      buttonSections.push([
+        <Tooltip key="dataReference" tooltip={t`Learn about your data`}>
+          <a className={dataReferenceButtonClasses}>
+            <Icon
+              name="reference"
+              size={ICON_SIZE}
+              onClick={this.onToggleDataReference}
+            />
+          </a>
+        </Tooltip>,
+      ]);
+    }
     if (
       !isEditing &&
       card &&
-      question.alertType(visualizationSettings) !== null
+      question.alertType(visualizationSettings) !== null &&
+      this.state.currentUserPermission.Alerts
     ) {
       const createAlertItem = {
         title: t`Get alerts about this`,
@@ -478,8 +488,8 @@ export default class QueryHeader extends Component {
               !isNew && Object.values(questionAlerts).length > 0
                 ? updateAlertItem
                 : isNew
-                ? createAlertAfterSavingQuestionItem
-                : createAlertItem,
+                  ? createAlertAfterSavingQuestionItem
+                  : createAlertItem,
             ]}
           />
         </div>,

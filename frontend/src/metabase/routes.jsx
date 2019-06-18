@@ -95,6 +95,8 @@ import Overworld from "metabase/containers/Overworld";
 import ArchiveApp from "metabase/home/containers/ArchiveApp.jsx";
 import SearchApp from "metabase/home/containers/SearchApp";
 
+import { CurrentUserPermission } from "metabase/lib/getCurrentUserPermission";
+
 const MetabaseIsSetup = UserAuthWrapper({
   predicate: authData => !authData.hasSetupToken,
   failureRedirectPath: "/setup",
@@ -144,7 +146,6 @@ const IsAuthenticated = MetabaseIsSetup(
 const IsAdmin = MetabaseIsSetup(
   UserIsAuthenticated(UserIsAdmin(({ children }) => children)),
 );
-
 const IsNotAuthenticated = MetabaseIsSetup(
   UserIsNotAuthenticated(({ children }) => children),
 );
@@ -172,6 +173,8 @@ export const getRoutes = store => (
     <Route
       onEnter={async (nextState, replace, done) => {
         await store.dispatch(loadCurrentUser());
+        // const allowed = await CurrentUserPermission.setUserPermission();
+        // console.log('allowed', allowed);
         done();
       }}
     >
@@ -210,7 +213,14 @@ export const getRoutes = store => (
           <ModalRoute path="permissions" modal={CollectionPermissionsModal} />
         </Route>
 
-        <Route path="activity" component={HomepageApp} />
+        <Route path="activity" component={HomepageApp} onEnter={async (nextState, replace, done) => {
+          const allowed = await CurrentUserPermission.setUserPermission();
+          if (!allowed.Activity) {
+            replace({ pathname: "/unauthorized" });
+          }
+          done();
+        }}
+        />
 
         <Route
           path="dashboard/:dashboardId"
@@ -218,14 +228,33 @@ export const getRoutes = store => (
           component={DashboardApp}
         >
           <ModalRoute path="history" modal={DashboardHistoryModal} />
-          <ModalRoute path="move" modal={DashboardMoveModal} />
-          <ModalRoute path="copy" modal={DashboardCopyModal} />
+          <ModalRoute path="move" modal={DashboardMoveModal} onEnter={async (nextState, replace, done) => {
+            const allowed = await CurrentUserPermission.setUserPermission();
+            if (!allowed.DuplicateDashboard) {
+              replace({ pathname: "/unauthorized" });
+            }
+            done();
+          }} />
+          <ModalRoute path="copy" modal={DashboardCopyModal} onEnter={async (nextState, replace, done) => {
+            const allowed = await CurrentUserPermission.setUserPermission();
+            if (!allowed.DuplicateDashboard) {
+              replace({ pathname: "/unauthorized" });
+            }
+            done();
+          }} />
         </Route>
 
         <Route path="/question">
           <IndexRoute component={QueryBuilder} />
           {/* NEW QUESTION FLOW */}
-          <Route path="new" title={t`New Question`}>
+          <Route path="new" title={t`New Question`} onEnter={async (nextState, replace, done) => {
+            const allowed = await CurrentUserPermission.setUserPermission();
+            if (!allowed.AskQuestion) {
+              replace({ pathname: "/unauthorized" });
+            }
+            done();
+          }}
+          >
             <IndexRoute component={NewQuestionStart} />
             <Route
               path="metric"
@@ -255,7 +284,14 @@ export const getRoutes = store => (
       </Route>
 
       {/* REFERENCE */}
-      <Route path="/reference" title={`Data Reference`}>
+      <Route path="/reference" title={`Data Reference`} onEnter={async (nextState, replace, done) => {
+        const allowed = await CurrentUserPermission.setUserPermission();
+        if (!allowed.Reference) {
+          replace({ pathname: "/unauthorized" });
+        }
+        done();
+      }}
+      >
         <IndexRedirect to="/reference/databases" />
         <Route
           path="guide"
@@ -318,7 +354,14 @@ export const getRoutes = store => (
       </Route>
 
       {/* PULSE */}
-      <Route path="/pulse" title={t`Pulses`}>
+      <Route path="/pulse" title={t`Pulses`} onEnter={async (nextState, replace, done) => {
+        const allowed = await CurrentUserPermission.setUserPermission();
+        if (!allowed.Pulse) {
+          replace({ pathname: "/unauthorized" });
+        }
+        done();
+      }}
+      >
         {/* NOTE: legacy route, not linked to in app */}
         <IndexRedirect to="/search" query={{ type: "pulse" }} />
         <Route path="create" component={PulseEditApp} />

@@ -61,7 +61,7 @@
 (api/defendpoint GET "/graph"
   "Fetch a graph of all Permissions."
   []
-  (api/check-superuser)
+  ; (api/check-superuser)
   (perms/graph))
 
 
@@ -119,7 +119,7 @@
 (api/defendpoint GET "/group"
   "Fetch all `PermissionsGroups`, including a count of the number of `:members` in that group."
   []
-  (api/check-superuser)
+  ; (api/check-superuser)
   (-> (ordered-groups)
       (hydrate :member_count)))
 
