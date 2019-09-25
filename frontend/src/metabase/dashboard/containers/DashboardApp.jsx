@@ -22,6 +22,7 @@ import {
   getEditingParameter,
   getParameters,
   getParameterValues,
+  getGlobalPublishLabel,
 } from "../selectors";
 import { getDatabases, getMetadata } from "metabase/selectors/metadata";
 import { getUserIsAdmin } from "metabase/selectors/user";
@@ -49,6 +50,7 @@ const mapStateToProps = (state, props) => {
     parameters: getParameters(state, props),
     parameterValues: getParameterValues(state, props),
     metadata: getMetadata(state),
+    globalPublishLabel: getGlobalPublishLabel(state, props),
   };
 };
 

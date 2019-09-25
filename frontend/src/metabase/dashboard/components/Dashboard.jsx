@@ -20,26 +20,26 @@ import cx from "classnames";
 
 import type {
   LocationDescriptor,
-  ApiError,
-  QueryParams,
+    ApiError,
+    QueryParams,
 } from "metabase/meta/types";
 
 import type {
   Card,
-  CardId,
-  VisualizationSettings,
+    CardId,
+    VisualizationSettings,
 } from "metabase/meta/types/Card";
 import type {
   DashboardWithCards,
-  DashboardId,
-  DashCardId,
+    DashboardId,
+    DashCardId,
 } from "metabase/meta/types/Dashboard";
 import type { Revision, RevisionId } from "metabase/meta/types/Revision";
 import type {
   Parameter,
-  ParameterId,
-  ParameterValues,
-  ParameterOption,
+    ParameterId,
+    ParameterValues,
+    ParameterOption,
 } from "metabase/meta/types/Parameter";
 
 type Props = {
@@ -87,6 +87,7 @@ type Props = {
   removeParameter: (parameterId: ParameterId) => void,
   setParameterName: (parameterId: ParameterId, name: string) => void,
   setParameterValue: (parameterId: ParameterId, value: string) => void,
+  setParameterValueAndLabel: (parameterId: ParameterId, value: string) => void,
   setParameterDefaultValue: (
     parameterId: ParameterId,
     defaultValue: string,
@@ -118,6 +119,7 @@ type Props = {
 
   onChangeLocation: string => void,
   setErrorPage: (error: ApiError) => void,
+  setGlobalPublishLabel: (label: string | null) => void,
 };
 
 type State = {
@@ -224,6 +226,33 @@ export default class Dashboard extends Component {
     });
   };
 
+  // Set global publish label and parameter values for dashboards
+  setParameterValueAndLabel = (parameterId: ParameterId, value: string) => {
+    console.log(`parameterId: ${parameterId}, value: ${value}, typeOfValue: ${typeof (value)}`);
+
+    const defaultPublishLabel = 'No Data';
+    const _value = value !== null && typeof (value) === 'object' ? value[value.length - 1] : value;
+
+    if (_value !== null) {
+      // set global publish label and parameter value when value != defaultPublishLabel
+      if (_value !== defaultPublishLabel) {
+        this.props.setGlobalPublishLabel(_value);
+        this.props.setParameterValue(parameterId, _value);
+      }
+      // set parameter value whenever global publish label is available and value == defaultPublishLabel
+      else if (this.props.globalPublishLabel !== null && _value === defaultPublishLabel) {
+        this.props.setParameterValue(parameterId, this.props.globalPublishLabel);
+      } else {
+        this.props.setParameterValue(parameterId, _value);
+      }
+    }
+    // set global publish label to null and parameter value set to 'No Data' when value is null
+    else {
+      this.props.setGlobalPublishLabel(null);
+      this.props.setParameterValue(parameterId, defaultPublishLabel);
+    }
+  }
+
   render() {
     let {
       dashboard,
@@ -259,7 +288,7 @@ export default class Dashboard extends Component {
           setParameterIndex={this.props.setParameterIndex}
           setParameterDefaultValue={this.props.setParameterDefaultValue}
           removeParameter={this.props.removeParameter}
-          setParameterValue={this.props.setParameterValue}
+          setParameterValue={this.setParameterValueAndLabel}
         />
       );
     }
@@ -301,11 +330,11 @@ export default class Dashboard extends Component {
                   />
                 </Box>
               ) : (
-                <DashboardGrid
-                  {...this.props}
-                  onEditingChange={this.setEditing}
-                />
-              )}
+                  <DashboardGrid
+                    {...this.props}
+                    onEditingChange={this.setEditing}
+                  />
+                )}
             </div>
           </div>
         )}

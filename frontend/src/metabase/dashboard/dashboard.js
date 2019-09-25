@@ -26,8 +26,8 @@ import { getParametersBySlug } from "metabase/meta/Parameter";
 
 import type {
   DashboardWithCards,
-  DashCard,
-  DashCardId,
+    DashCard,
+    DashCardId,
 } from "metabase/meta/types/Dashboard";
 import type { Card, CardId } from "metabase/meta/types/Card";
 
@@ -143,10 +143,10 @@ export const setDashboardAttributes = createAction(SET_DASHBOARD_ATTRIBUTES);
 export const setDashCardAttributes = createAction(SET_DASHCARD_ATTRIBUTES);
 
 // TODO: consolidate with questions reducer
-export const fetchCards = createThunkAction(FETCH_CARDS, function(
+export const fetchCards = createThunkAction(FETCH_CARDS, function (
   filterMode = "all",
 ) {
-  return async function(dispatch, getState) {
+  return async function (dispatch, getState) {
     const cards = await CardApi.list({ f: filterMode });
     for (const c of cards) {
       c.updated_at = moment(c.updated_at);
@@ -155,21 +155,21 @@ export const fetchCards = createThunkAction(FETCH_CARDS, function(
   };
 });
 
-export const deleteCard = createThunkAction(DELETE_CARD, function(cardId) {
-  return async function(dispatch, getState) {
+export const deleteCard = createThunkAction(DELETE_CARD, function (cardId) {
+  return async function (dispatch, getState) {
     await CardApi.delete({ cardId });
     return cardId;
   };
 });
 
-export const addCardToDashboard = function({
+export const addCardToDashboard = function ({
   dashId,
   cardId,
 }: {
   dashId: DashCardId,
   cardId: CardId,
 }) {
-  return function(dispatch, getState) {
+  return function (dispatch, getState) {
     const { dashboards, dashcards, cards } = getState().dashboard;
     const dashboard: DashboardWithCards = dashboards[dashId];
     const existingCards: Array<DashCard> = dashboard.ordered_cards
@@ -196,14 +196,14 @@ export const addCardToDashboard = function({
   };
 };
 
-export const addDashCardToDashboard = function({
+export const addDashCardToDashboard = function ({
   dashId,
   dashcardOverrides,
 }: {
   dashId: DashCardId,
   dashcardOverrides: {},
 }) {
-  return function(dispatch, getState) {
+  return function (dispatch, getState) {
     const { dashboards, dashcards } = getState().dashboard;
     const dashboard: DashboardWithCards = dashboards[dashId];
     const existingCards: Array<DashCard> = dashboard.ordered_cards
@@ -224,7 +224,7 @@ export const addDashCardToDashboard = function({
   };
 };
 
-export const addTextDashCardToDashboard = function({
+export const addTextDashCardToDashboard = function ({
   dashId,
 }: {
   dashId: DashCardId,
@@ -247,8 +247,8 @@ export const addTextDashCardToDashboard = function({
 
 export const saveDashboardAndCards = createThunkAction(
   SAVE_DASHBOARD_AND_CARDS,
-  function() {
-    return async function(dispatch, getState) {
+  function () {
+    return async function (dispatch, getState) {
       const { dashboards, dashcards, dashboardId } = getState().dashboard;
       const dashboard = {
         ...dashboards[dashboardId],
@@ -445,12 +445,12 @@ function setFetchCardDataCancel(card_id, dashcard_id, deferred) {
   cardDataCancelDeferreds[`${dashcard_id},${card_id}`] = deferred;
 }
 
-export const fetchCardData = createThunkAction(FETCH_CARD_DATA, function(
+export const fetchCardData = createThunkAction(FETCH_CARD_DATA, function (
   card,
   dashcard,
   { reload, clear } = {},
 ) {
-  return async function(dispatch, getState) {
+  return async function (dispatch, getState) {
     // If the dataset_query was filtered then we don't have permisison to view this card, so
     // shortcircuit and return a fake 403
     if (!card.dataset_query) {
@@ -578,13 +578,13 @@ export const markCardAsSlow = createAction(MARK_CARD_AS_SLOW, card => ({
   result: true,
 }));
 
-export const fetchDashboard = createThunkAction(FETCH_DASHBOARD, function(
+export const fetchDashboard = createThunkAction(FETCH_DASHBOARD, function (
   dashId,
   queryParams,
   enableDefaultParameters = true,
 ) {
   let result;
-  return async function(dispatch, getState) {
+  return async function (dispatch, getState) {
     const dashboardType = getDashboardType(dashId);
     if (dashboardType === "public") {
       result = await PublicApi.dashboard({ uuid: dashId });
@@ -685,22 +685,22 @@ export const updateEmbeddingParams = createAction(
   ({ id }, embedding_params) => DashboardApi.update({ id, embedding_params }),
 );
 
-export const fetchRevisions = createThunkAction(FETCH_REVISIONS, function({
+export const fetchRevisions = createThunkAction(FETCH_REVISIONS, function ({
   entity,
   id,
 }) {
-  return async function(dispatch, getState) {
+  return async function (dispatch, getState) {
     const revisions = await RevisionApi.list({ entity, id });
     return { entity, id, revisions };
   };
 });
 
-export const revertToRevision = createThunkAction(REVERT_TO_REVISION, function({
+export const revertToRevision = createThunkAction(REVERT_TO_REVISION, function ({
   entity,
   id,
   revision_id,
 }) {
-  return async function(dispatch, getState) {
+  return async function (dispatch, getState) {
     await RevisionApi.revert({ entity, id, revision_id });
   };
 });
@@ -1120,6 +1120,23 @@ const parameterValues = handleActions(
   {},
 );
 
+// action constants
+export const GLOBAL_PUBLISH_LABEL = "metabase/dashboard/GLOBAL_PUBLISH_LABEL";
+
+// action creators
+export const setGlobalPublishLabel = createAction(GLOBAL_PUBLISH_LABEL);
+
+// reducers
+const globalPublishLabel = handleActions({
+  [setGlobalPublishLabel]: {
+    next: (state, { payload }) => {
+      return payload;
+    },
+  },
+},
+  null,
+);
+
 export default combineReducers({
   dashboardId,
   isEditing,
@@ -1132,4 +1149,5 @@ export default combineReducers({
   dashcardData,
   slowCards,
   parameterValues,
+  globalPublishLabel,
 });

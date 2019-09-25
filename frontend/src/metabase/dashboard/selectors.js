@@ -15,9 +15,9 @@ import type { CardId, Card } from "metabase/meta/types/Card";
 import type { DashCardId } from "metabase/meta/types/Dashboard";
 import type {
   ParameterId,
-  Parameter,
-  ParameterMapping,
-  ParameterMappingUIOption,
+    Parameter,
+    ParameterMapping,
+    ParameterMappingUIOption,
 } from "metabase/meta/types/Parameter";
 
 export type AugmentedParameterMapping = ParameterMapping & {
@@ -45,6 +45,7 @@ export const getSlowCards = state => state.dashboard.slowCards;
 export const getCardIdList = state => state.dashboard.cardList;
 export const getRevisions = state => state.dashboard.revisions;
 export const getParameterValues = state => state.dashboard.parameterValues;
+export const getGlobalPublishLabel = state => state.dashboard.globalPublishLabel;
 
 export const getDashboard = createSelector(
   [getDashboardId, getDashboards],
