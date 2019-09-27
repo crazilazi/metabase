@@ -38,8 +38,16 @@ function MainSeries(chartType, settings = {}, value = 1) {
     },
     data: {
       cols: [
-        StringColumn({ display_name: "Category", source: "breakout" }),
-        NumberColumn({ display_name: "Sum", source: "aggregation" }),
+        StringColumn({
+          display_name: "Category",
+          source: "breakout",
+          field_ref: ["field-id", 1],
+        }),
+        NumberColumn({
+          display_name: "Sum",
+          source: "aggregation",
+          field_ref: ["field-id", 2],
+        }),
       ],
       rows: [["A", value]],
     },
@@ -51,8 +59,16 @@ function ExtraSeries(count = 2) {
     card: {},
     data: {
       cols: [
-        StringColumn({ display_name: "Category", source: "breakout" }),
-        NumberColumn({ display_name: "Count", source: "aggregation" }),
+        StringColumn({
+          display_name: "Category",
+          source: "breakout",
+          field_ref: ["field-id", 3],
+        }),
+        NumberColumn({
+          display_name: "Count",
+          source: "aggregation",
+          field_ref: ["field-id", 4],
+        }),
       ],
       rows: [["A", count]],
     },
@@ -63,11 +79,11 @@ describe("LineAreaBarRenderer-bar", () => {
   let element;
   const qsa = selector => [...element.querySelectorAll(selector)];
 
-  beforeEach(function() {
+  beforeEach(function () {
     element = createFixture();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     cleanupFixture(element);
   });
 

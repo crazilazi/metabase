@@ -219,21 +219,9 @@ export default class LoginApp extends Component {
                 <Button primary={this.state.valid} disabled={!this.state.valid}>
                   {t`Sign in`}
                 </Button>
-                <Link href="http://planner.southindia.cloudapp.azure.com:90/user/reset-password" className="Grid-cell py2 sm-py0 md-text-right text-centered flex-full link">
+                <Link href="https://housingbrixxdash.castletonplc.com:90/user/reset-password" className="Grid-cell py2 sm-py0 md-text-right text-centered flex-full link">
                   {t`I seem to have forgotten my password`}
                 </Link>
-                {/* <Link
-                  to={
-                    "/auth/forgot_password" +
-                    (Utils.validEmail(this.state.credentials.username)
-                      ? "?email=" + this.state.credentials.username
-                      : "")
-                  }
-                  className="Grid-cell py2 sm-py0 md-text-right text-centered flex-full link"
-                  onClick={e => {
-                    window.OSX ? window.OSX.resetPassword() : null;
-                  }}
-                >{t`I seem to have forgotten my password`}</Link> */}
               </div>
             </form>
           </div>
